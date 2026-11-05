@@ -15,3 +15,29 @@ export function shouldOpenExternally(url: string): boolean {
     return false;
   }
 }
+
+// Whether a navigation the page itself started (a clicked link, a dropped URL,
+// a location change) must be stopped. It would move a window that shows the
+// app to another page while keeping the window's preload, the full
+// electronAPI. App pages are the Vite dev server on loopback and the packaged
+// file:// index.html; a window showing anything else is left alone.
+export function shouldBlockNavigation(currentUrl: string, targetUrl: string): boolean {
+  let current: URL;
+  try {
+    current = new URL(currentUrl);
+  } catch {
+    return false;
+  }
+  const isLoopback = current.hostname === '127.0.0.1' || current.hostname === 'localhost';
+  const onAppPage = current.protocol === 'file:' || (current.protocol === 'http:' && isLoopback);
+  if (!onAppPage) return false;
+  try {
+    const target = new URL(targetUrl);
+    if (current.protocol === 'file:') {
+      return target.protocol !== 'file:' || target.pathname !== current.pathname;
+    }
+    return target.origin !== current.origin;
+  } catch {
+    return true;
+  }
+}

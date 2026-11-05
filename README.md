@@ -1,3 +1,18 @@
+> **About this fork.** This is a fork of [Natively](https://github.com/Natively-AI-assistant/natively-cluely-ai-assistant), originally developed by Natively AI Private Limited, released under the same license: personal, educational, research and non-commercial use only. It adds four security and privacy patches:
+> - Links in AI answers open in your browser, not inside the app window, where a malicious page would get the app's internal API.
+> - AI answers can't load images from arbitrary websites, which could otherwise leak meeting text through an image URL.
+> - Google Analytics is turned off.
+> - The review-prompt sync that sent your Mac's hardware ID on every launch is turned off.
+>
+> **Run it on macOS** (needs Node 22.13+, Rust and Xcode):
+> ```
+> npm install
+> node node_modules/electron/install.js && node scripts/patch-electron-plist.js
+> npm run build:native
+> NATIVELY_HINDSIGHT_MEMORY=0 NATIVELY_CORE_SMOKE=1 npm start
+> ```
+> The second line fetches Electron if npm skipped its install script (npm 11 does by default). `NATIVELY_CORE_SMOKE=1` builds without the private premium code, so Pro features are unavailable. `NATIVELY_HINDSIGHT_MEMORY=0` keeps the long-term-memory server launcher off. Add an AI key in Settings → AI Providers instead of copying `.env.example` to `.env`, whose placeholder keys would be used as real ones.
+
 # [Sponsored by Recall AI - API for desktop recording](https://docs.recall.ai/docs/desktop-sdk?utm_source=github&utm_medium=sponsorship&utm_campaign=evinjohnn-natively-ai-assistant)
 
 If you’re looking for a hosted desktop recording API, consider checking out [Recall.ai](https://docs.recall.ai/docs/desktop-sdk?utm_source=github&utm_medium=sponsorship&utm_campaign=evinjohnn-natively-ai-assistant), an API that records Zoom, Google Meet, Microsoft Teams, in-person meetings, and more.

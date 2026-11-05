@@ -22,6 +22,10 @@ import { loadNativeModule } from "../audio/nativeModuleLoader"
 import { nativelyApiBase } from "./nativelyApiBase"
 
 const NATIVELY_API_URL = nativelyApiBase()
+// Off in this local build: every launch and quit sent the Mac's hardware ID
+// (hwid) to the review backend, with no setting to stop it. The prompt runs
+// on local state instead. NATIVELY_REVIEW_SYNC=1 restores the sync.
+const REVIEW_BACKEND_SYNC = process.env.NATIVELY_REVIEW_SYNC === "1"
 const REVIEW_STATE_FILE = "review-state.json"
 
 // Pure eligibility logic is in ReviewPromptLogic.ts (testable without Electron),
@@ -241,6 +245,7 @@ export class ReviewService {
     /** Sync the local ledger with the server's view of the world. Useful
      *  on app launch so a "Don't show again" from another install sticks. */
     async syncWithBackend(apiKey: string | null, hardwareId: string | null): Promise<void> {
+        if (!REVIEW_BACKEND_SYNC) return
         try {
             const headers: Record<string, string> = {}
             if (apiKey) headers["x-natively-key"] = apiKey
@@ -279,6 +284,7 @@ export class ReviewService {
 
     /** Fire-and-forget usage sync after a session ends. */
     async reportUsage(apiKey: string | null, hardwareId: string | null, usageMs: number): Promise<void> {
+        if (!REVIEW_BACKEND_SYNC) return
         try {
             const headers: Record<string, string> = { "Content-Type": "application/json" }
             if (apiKey) headers["x-natively-key"] = apiKey
@@ -299,6 +305,7 @@ export class ReviewService {
     }
 
     async reportEvent(apiKey: string | null, hardwareId: string | null, event: Record<string, unknown>): Promise<void> {
+        if (!REVIEW_BACKEND_SYNC) return
         try {
             const headers: Record<string, string> = { "Content-Type": "application/json" }
             if (apiKey) headers["x-natively-key"] = apiKey
@@ -373,6 +380,7 @@ export class ReviewService {
     }
 
     async getPromptState(apiKey: string | null, hardwareId: string | null): Promise<{ ok: boolean; state?: ReviewPromptLocalState; eligible?: boolean; reason?: string }> {
+        if (!REVIEW_BACKEND_SYNC) return { ok: true, state: this.getLocalState(), ...this.shouldShowPrompt() }
         try {
             const headers: Record<string, string> = {}
             if (apiKey) headers["x-natively-key"] = apiKey

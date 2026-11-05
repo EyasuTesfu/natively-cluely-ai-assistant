@@ -49,6 +49,10 @@ interface SessionDurationPayload {
 // --- Configuration ---
 
 const GA4_MEASUREMENT_ID = "G-494RMJ2G6E";
+// Off in this local build: GA loaded whatever the Usage statistics and
+// Undetectable settings said. Set to true to restore it (and re-add the
+// Google hosts to the CSP in index.html).
+const GOOGLE_ANALYTICS_ENABLED: boolean = false;
 const APP_VERSION = "1.1.3";
 
 // Extend window to include gtag/dataLayer
@@ -152,7 +156,7 @@ class AnalyticsService {
     }
 
     public initAnalytics(): void {
-        if (this.initialized || this.undetectable) return;
+        if (!GOOGLE_ANALYTICS_ENABLED || this.initialized || this.undetectable) return;
 
         try {
             // 1. Initialize dataLayer

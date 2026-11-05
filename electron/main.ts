@@ -1447,7 +1447,7 @@ import { createPageTitleGuard } from './utils/windowTitleGuard'
 import { createStealthProtectionLoop } from './utils/stealthProtection'
 import { resolveTrayIcon } from './utils/trayIcon'
 import { appUserModelIdForDisguise } from './utils/windowsTaskbarPolicy'
-import { shouldOpenExternally } from './utils/windowOpenPolicy'
+import { shouldBlockNavigation, shouldOpenExternally } from './utils/windowOpenPolicy'
 import { ensureNativeModuleAbi } from './utils/nativeModuleGuard'
 
 // Opt-in only: this trace writes allowlisted process metadata and IPC byte estimates
@@ -10271,6 +10271,19 @@ async function initializeApp() {
         console.warn('[Main] Blocked window.open', { protocol: url.split(':')[0] });
       }
       return { action: 'deny' };
+    });
+    // A plain click on a link, or a dropped URL, navigates the window itself,
+    // and the page that loads keeps this window's preload: the full
+    // electronAPI. Keep app windows on the app's own pages; https links go to
+    // the default browser, like window.open above.
+    contents.on('will-navigate', (event, url) => {
+      if (!shouldBlockNavigation(contents.getURL(), url)) return;
+      event.preventDefault();
+      if (shouldOpenExternally(url)) {
+        shell.openExternal(url).catch(() => console.warn('[Main] openExternal failed'));
+      } else {
+        console.warn('[Main] Blocked navigation', { protocol: url.split(':')[0] });
+      }
     });
   });
 
